@@ -45,7 +45,7 @@ class Game
   end
 
   def load_game(i)
-    game_file = File.read("../game_file/saved#{i}.yaml")
+    game_file = File.read("game_file/saved#{i}.yaml")
     yaml = YAML.load(game_file)
     Hangman.new(yaml[0], yaml[1], yaml[2], yaml[3])
   end  
@@ -55,7 +55,7 @@ end
 def random_word
   word_array = []
 
-  words = File.readlines('../english_words.txt')
+  words = File.readlines('english_words.txt')
 
   words.each do |word|
     word.strip!

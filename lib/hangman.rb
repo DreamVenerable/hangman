@@ -11,14 +11,20 @@ class Hangman
 
   def start
     update_game
-    while @guesses_left != 0 && continue?
+    continue?
+    while @guesses_left > 0 && @bool
       play
     end
+
     puts "The word was '#{@word}'" if @guesses_left == 0
   end
 
   def continue?
-    true if @correct_char.any?('•')
+    @bool = true if @correct_char.any?('•')
+  end
+
+  def exit_game
+    @bool = false
   end
 
   def compare_letter
@@ -49,7 +55,7 @@ class Hangman
   end
 
   def save_game?
-    puts "Save game? Y/N"
+    puts "Save game and exit? Y/N"
     begin
       save_choice = gets.downcase.match(/^[yn]{1}$/)[0]
     rescue StandardError
@@ -72,12 +78,13 @@ class Hangman
     else
       sleep 0.5
       save_game(num)
+      exit_game
     end
   end
 
   def save_game(i)
     yaml = to_yaml
-    game_file = File.write("../game_file/saved#{i}.yaml", yaml)
+    game_file = File.write("game_file/saved#{i}.yaml", yaml)
   end  
 
   def to_yaml
