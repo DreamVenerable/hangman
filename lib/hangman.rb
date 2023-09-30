@@ -1,18 +1,20 @@
-class Game
-  def initialize(word)
+require 'yaml'
+
+class Hangman
+  def initialize(word, binned, correct, guesses)
     @word = word
-    p @word
-    @number_of_tries = 6
-    @num = word.length
+    @binned = binned
+    @correct_char = correct
+    @guesses_left = guesses
     start
   end
 
   def start
-    @binned = []
-    @correct_char = Array.new(@num, "•")
-    while @number_of_tries != 0 && continue?
+    update_game
+    while @guesses_left != 0 && continue?
       play
     end
+    puts "The word was '#{@word}'" if @guesses_left == 0
   end
 
   def continue?
@@ -25,17 +27,17 @@ class Game
   end
 
   def place_letter
-    index = (0 ... @num).find_all { |i| @word[i] == @letter }.each { |i| @correct_char[i] = @letter }
+    index = (0 ... @word.length).find_all { |i| @word[i] == @letter }.each { |i| @correct_char[i] = @letter }
   end
 
   def update_game
+    puts "                                \n"
     puts "#{@correct_char.join('')}"
     puts "Your incorrect guesses: #{@binned}"
-    puts "                                \n"
   end
 
   def letter_bin
-    @number_of_tries -= 1
+    @guesses_left -= 1
     @binned.push(@letter)
   end
 
@@ -43,6 +45,43 @@ class Game
     choice
     compare_letter
     update_game
+    save_game?
+  end
+
+  def save_game?
+    puts "Save game? Y/N"
+    begin
+      save_choice = gets.downcase.match(/^[yn]{1}$/)[0]
+    rescue StandardError
+      puts 'Wrong input, Try again!'
+      retry
+    else
+      sleep 0.5
+      choose_file if save_choice == 'y'
+      update_game if save_choice == 'n'
+    end
+  end
+
+  def choose_file
+    puts "Type your file number to save your game:"
+    begin
+      num = gets.match(/^[0-9]{1}$/)[0]
+    rescue StandardError
+      puts 'Wrong input, Try again!'
+      retry
+    else
+      sleep 0.5
+      save_game(num)
+    end
+  end
+
+  def save_game(i)
+    yaml = to_yaml
+    game_file = File.write("../game_file/saved#{i}.yaml", yaml)
+  end  
+
+  def to_yaml
+    YAML.dump ([@word, @binned, @correct_char, @guesses_left])
   end
 
   def choice
@@ -56,20 +95,5 @@ class Game
       sleep 0.5
     end
   end
-
 end
 
-def random_word
-  word_array = []
-
-  words = File.readlines('../english_words.txt')
-
-  words.each do |word|
-    word.strip!
-    word_array.push(word) if word.length <= 12 && word.length >= 5
-  end
-
-  word_array.sample
-end
-
-Game.new(random_word)
